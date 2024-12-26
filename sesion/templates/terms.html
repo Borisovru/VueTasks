@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title%}Terms{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="justify-content-start">
+        <h1>Здравствуйте, {{user.login}}!</h1>
+        На этом сайте вы можете посмотреть термины.
+    </div>
+    <br>
+    <div class="row row-cols-auto g-2 g-lg-3 mx-auto">
+        {% for term in terms %}
+        <div class="col">
+            <div class="card h-100" style="width: 18rem;">
+                <div class="card-body">
+                    {% if edit_term == term.id %}
+                        <form action="/terms/{{ term.id }}/edit" method="post">
+                                <textarea rows=5 cols="30" name="term_name" placeholder="Изменение термина" class="card-title"> {{ term.name }}</textarea>
+                                <textarea rows=5 cols="30" name="term_description" placeholder="Изменение описания" class="card-text">{{ term.description }}</textarea>
+                            <div class="form-group">
+                                <input type="submit" name="submit" class="btn btn-primary" value="Изменить">
+                            </div>
+                        </form>
+                    {% else %}
+                        {% if term.user_id == user.id %}
+                            <h5 class="card-title">{{term.name}}</h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary">Твой термин</h6>
+                            <p class="card-text">{{term.description}}</p>
+                            <a href="/terms/{{ term.id }}/edit" class="card-link">Изменить</a>
+                            <a href="/terms/{{ term.id }}/delete" class="card-link">Удалить</a>
+                        {% else %}
+                            <h5 class="card-title">{{term.name}}</h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary">{{term.user_name}}</h6>
+                            <p class="card-text">{{term.description}}</p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="col">
+            <form action="/terms/add" method="post">
+                <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                        <textarea rows=5 cols="30" name="term_name" placeholder="Новый термин" class="card-title"></textarea>
+                        <textarea rows=5 cols="30" name="term_description" placeholder="Новое описание" class="card-text"></textarea>
+                        <div class="form-group">
+                            <input type="submit" name="submit" class="btn btn-primary" value="Создать">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
