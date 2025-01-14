@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+
+<div id="app">
+    <h3>Список задач</h3>
+
+    <div v-for="task in tasks" :key="task.title">
+        <input type="checkbox" v-model="task.is_done"/>
+        <span v-if="!task.is_done">{{ task.title }}</span>
+        <span v-else style="text-decoration: line-through">{{ task.title }}</span>
+    </div>
+
+    <div style="margin-top: 20px">
+        <input type="text" v-model="newTask" placeholder="Название задачи"/>
+        <button @click="addTask">Добавить задачу</button>
+
+        <!-- если есть ошибка - показать ее -->
+        <p v-if="error" style="color: red;">{{ error }}</p>
+    </div>
+
+</div>
+
+<script>
+    const {createApp} = Vue
+
+    createApp({
+        data() {
+            return {
+                tasks: [],
+                newTask: '',
+                // заводим переменную для хранения ошибки
+                error: ''
+            }
+        },
+        methods: {
+            // добавление задачи
+            addTask() {
+                // очищаем поле с текстом ошибки
+                this.error = ''
+                // отправляем запрос на добавление задачи
+                fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    // JSON описание новой задачи без id
+                    body: JSON.stringify({
+                        'title': this.newTask,
+                        'is_done': false
+                    })
+                }).then(response => {
+                    // если код ответа не 2хх - порождаем исключение для catch
+                    if (!response.ok) {
+                        throw new Error(`Ошибка HTTP: ${response.status}`);
+                    }
+                    // если все хорошо - десериализуем json
+                    return response.json()
+                }).then(task => {
+                    // сервер вернул нам описание задачи, уже с id, добавляем в список
+                    this.tasks.push(task)
+                    // очищаем поле с текстом новой задачи
+                    this.newTask = ''
+                }).catch(error => {
+                    // если что-то пошло не так - показываем ошибку на экране
+                    this.error = 'Не удалось сохранить задачу.'
+                })
+            },
+        },
+        // mounted срабатывает при загрузке страницы
+        mounted() {
+            // отправляем запрос на получение списка всех задач с сервера
+            fetch('/api/tasks').then(response => response.json()).then(tasks => {
+                // полученный список задач с сервера кладем в реактивную переменную tasks (он покажется на экране)
+                this.tasks = tasks;
+            }).catch(error => {
+                // если что-то пошло не так - показываем ошибку
+                this.error = 'Не удалось загрузить список задач с сервера';
+            });
+        }
+    }).mount('#app')
+</script>
+</body>
+</html>
